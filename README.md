@@ -9,3 +9,21 @@ Where 'Modern_artis' the article title, '}' is a separator, '20130601' is the da
 The second MapReduce would read the output from the first pair and exclude any article that has less than 10 total page views from the results. Each line of the output should look like:
 <pre><code>Modern_art\t[20160601,20160604]\t[50,75]\t125\t25</code></pre>
 In this example, Modern_artis the article name. The dates in the first set of brackets aredates when the corresponding page was accessed. The dates in the second set of brackets arethe page views for each date. The next number is the total sum of page views. The finalnumber is the article’s popularity trend, which is calculated as the sum of page views during days 3-5 of the month minus the sum of page views during days 1-2 of the month. 
+## Instruction
+### Create an AWS EMR for streaming program using AWS CLI
+Example:
+<pre><code>aws emr create-cluster \
+	--applications Name=Hadoop Name=Hive \
+	--steps Type=STREAMING,Name='Streaming Program',ActionOnFailure=CONTINUE,Args=[-files,s3://elasticmapreduce/samples/mapper.py,-mapper,reducer.py,-reducer,aggregate,-input,s3://elasticmapreduce/samples/wiki/input,-output,s3://mybucket/wiki/output] \
+    --release-label emr-5.29.0 \
+    --use-default-roles \
+    --instance-groups InstanceGroupType=MASTER,InstanceCount=1,InstanceType=m5.xlarge InstanceGroupType=CORE,InstanceCount=2,InstanceType=m5.xlarge \
+    --auto-terminate</code></pre>
+The second pair of MapReduce only need one master node.
+### Create an AWS EMR with Hive steps
+Example:
+<pre><code>aws emr create-cluster \
+    --steps Type=HIVE,Name='Hive program',ActionOnFailure=CONTINUE,ActionOnFailure=TERMINATE_CLUSTER,Args=[-f,s3://elasticmapreduce/samples/hive-script.q,-d,INPUT=s3://elasticmapreduce/samples/hive-ads/input,-d,OUTPUT=s3://mybucket/hive-ads/output,-d,LIBS=s3://elasticmapreduce/samples/hive-ads/output] \
+    --applications Name=Hive \
+    --release-label emr-5.29.0 \
+    --instance-groups InstanceGroupType=MASTER,InstanceCount=1,InstanceType=m5.xlarge </code></pre>
